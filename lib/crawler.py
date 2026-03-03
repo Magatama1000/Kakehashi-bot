@@ -645,7 +645,7 @@ async def _process_single_tweet(
             rt_urls = getattr(retweeted, "urls", None)
             tweet_text = process_rt_text(
                 rt_screen_name=rt_screen_name,
-                rt_text=retweeted.text or "",
+                rt_text=retweeted.full_text or retweeted.text or "",
                 rt_urls=rt_urls,
                 mfm_mention=mfm_mention,
                 url_cleaner=url_cleaner,
@@ -668,7 +668,7 @@ async def _process_single_tweet(
 
     else:
         # ---- 通常ツイート ----
-        tweet_text = tweet.text or ""
+        tweet_text = tweet.full_text or tweet.text or ""
         urls = getattr(tweet, "urls", None)
 
         # メディア処理
@@ -710,7 +710,7 @@ async def _process_single_tweet(
                 logger.info("  引用先ノートが見つからないためテキストに埋め込みます")
                 try:
                     qt_screen_name = quote_tweet.user.screen_name
-                    qt_text = quote_tweet.text or ""
+                    qt_text = quote_tweet.full_text or quote_tweet.text or ""
                     qt_urls = getattr(quote_tweet, "urls", None)
 
                     qt_media_ids, qt_text_processed = await download_media(
