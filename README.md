@@ -3,13 +3,13 @@
 X(Twitter)の指定アカウントの投稿を Misskey に自動転載するボットです。
 
 ## 特徴
-- [twikit (フォーク版)](https://github.com/cmj/twikit) の採用により、事実上個人利用が困難になったXのAPIキー不要で利用できます。
+- [twikit (フォーク)](https://github.com/Magatama1000/twikit) の採用により、事実上個人利用が困難になったXのAPIキー不要で利用できます。
 - Misskeyの機能を利用し、Xのポストをなるべく再現します(引用, ツリー, 固定など)。
 - X内の@ポストはXへのMFMリンクに変換します。
 
 ## 注意事項
 > [!WARNING]  
-> Xの非公式API(Web版のAPI)を利用する[twikit (フォーク版)](https://github.com/cmj/twikit) を採用しています。**自己責任下**でご利用ください。  
+> Xの非公式API(Web版のAPI)を利用する[twikit (フォーク)](https://github.com/Magatama1000/twikit) を採用しています。**自己責任下**でご利用ください。  
 > そのため、メインアカウントの利用はなるべく避けることを強く推奨します。
 
 - OSは、Windows 11, Ubuntu 24.04, Debian 12 以降およびその派生のみ正式サポートしております。  
