@@ -23,7 +23,7 @@ from lib.ffmpeg import (
     encode_gif_to_video,
     encode_video_from_url,
 )
-from lib.misskey_client import MisskeyClient
+from lib.misskey_client import MAX_NOTE_FILES, MisskeyClient
 
 try:
     import pillow_avif
@@ -207,6 +207,8 @@ async def download_media(
     tweet_id: str = "unknown",
     config_media: dict | None = None,
     config_nsfw: dict | None = None,
+    *,
+    max_files: int = MAX_NOTE_FILES,
 ) -> tuple[list | None, str]:
     """
     twikit の Tweet.media を処理して Misskey にアップロードする。
@@ -233,6 +235,12 @@ async def download_media(
     file_ids: list[str] = []
 
     for idx, item in enumerate(media):
+        if len(file_ids) >= max_files:
+            logger.warning(
+                "メディア上限で残りを省略: tweet_id=%s total=%d processed=%d skipped=%d",
+                tweet_id, len(media), idx, len(media) - idx,
+            )
+            break
         media_type = getattr(item, "type", None)
         logger.info("  [%d/%d] type=%s", idx + 1, len(media), media_type)
 

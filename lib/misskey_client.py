@@ -16,6 +16,8 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+MAX_NOTE_FILES = 16
+
 # デフォルトタイムアウト設定（秒）
 DEFAULT_TIMEOUT = httpx.Timeout(connect=10.0, read=60.0, write=300.0, pool=10.0)
 # ドライブアップロード用（大容量ファイル対応）
@@ -225,6 +227,13 @@ class MisskeyClient:
         cw: str | None = None,
     ) -> dict:
         """ノートを作成する"""
+        if file_ids and len(file_ids) > MAX_NOTE_FILES:
+            logger.warning(
+                "notes_create: 添付を上限までに制限: total=%d limit=%d",
+                len(file_ids), MAX_NOTE_FILES,
+            )
+            file_ids = file_ids[:MAX_NOTE_FILES]
+
         payload: dict[str, Any] = {
             "visibility": visibility,
             "localOnly": local_only,

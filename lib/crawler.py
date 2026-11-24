@@ -19,10 +19,11 @@ from pathlib import Path
 from twikit import Client
 
 from lib.media import download_and_convert_to_avif, download_media
-from lib.misskey_client import MisskeyAPIError, MisskeyClient
+from lib.misskey_client import MAX_NOTE_FILES, MisskeyAPIError, MisskeyClient
 from lib.retry import retry_twikit
 from lib.text import (
     build_tweet_url,
+    remove_media_tco,
     process_quote_text,
     process_rt_text,
     process_tweet_text,
@@ -713,17 +714,24 @@ async def _process_single_tweet(
                     qt_text = quote_tweet.full_text or quote_tweet.text or ""
                     qt_urls = getattr(quote_tweet, "urls", None)
 
-                    qt_media_ids, qt_text_processed = await download_media(
-                        media=getattr(quote_tweet, "media", None),
-                        misskey_client=mk_client,
-                        text=qt_text,
-                        tweet_id=quote_tweet.id,
-                        config_media=config_media,
-                        config_nsfw=config_nsfw,
-                    )
+                    qt_media = getattr(quote_tweet, "media", None)
+                    remaining_files = MAX_NOTE_FILES - len(file_ids or [])
+                    qt_media_ids = None
+                    if remaining_files > 0:
+                        qt_media_ids, qt_text = await download_media(
+                            media=qt_media,
+                            misskey_client=mk_client,
+                            text=qt_text,
+                            tweet_id=quote_tweet.id,
+                            config_media=config_media,
+                            config_nsfw=config_nsfw,
+                            max_files=remaining_files,
+                        )
+                    elif qt_media:
+                        qt_text = remove_media_tco(qt_text)
                     qt_suffix = process_quote_text(
                         qt_screen_name=qt_screen_name,
-                        qt_text=qt_text_processed,
+                        qt_text=qt_text,
                         qt_urls=qt_urls,
                         mfm_mention=mfm_mention,
                         url_cleaner=url_cleaner,
@@ -750,6 +758,13 @@ async def _process_single_tweet(
         )
 
     # ---- Misskey にノート投稿 ----
+    if file_ids and len(file_ids) > MAX_NOTE_FILES:
+        logger.warning(
+            "  ノートの添付を上限までに制限: tweet_id=%s total=%d limit=%d",
+            tweet_id, len(file_ids), MAX_NOTE_FILES,
+        )
+        file_ids = file_ids[:MAX_NOTE_FILES]
+
     logger.info(
         "  ノートを作成します (file_ids=%s reply=%s renote=%s text=%s...)",
         file_ids, reply_id, renote_id, repr(tweet_text[:30])
